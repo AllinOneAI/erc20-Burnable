@@ -6,20 +6,26 @@ import "./IERC20.sol";
 contract iUseArchBtwERC20Token is IERC20 {
     
 
-    constructor {
+        
+    //public
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint)) public allowance;
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint public totalSupply;
+    address public owner;
+    uint256 public afterTime;  
 
-        uint256 private memory dTimeStamp = block.timestamp;
+    constructor () {
 
-        //public
-        mapping(address => uint256) public balanceOf;
-        mapping(address => mapping(address => uint)) public allowance;
-        string public name = "I Use Arch Btw";
-        string public symbol = "IUAB";
-        uint8 public decimals = 18;
-        uint public totalSupply = 1000^decimals;
-        address public owner = msg.sender;
-        uint256 public afterTime = dTimeStamp + 3 minutes;   
-
+       name = "I Use Arch Btw";
+       symbol = "IUAB";
+       decimals = 18;
+       totalSupply = 1000^decimals;
+       owner = msg.sender;
+       afterTime = block.timestamp + 3 minutes;  
+        balanceOf[msg.sender] = totalSupply;
 
     }  
 
@@ -29,13 +35,15 @@ custom modifiers
 
 *//////  
 
-    modifier onlyOwner {
-        require(msg.sender == owner);
+    modifier onlyOwner {                                                      //this modifier checks if it's owner of the contract, who calls the function
+        require(msg.sender == owner, 
+        "You can not mint tokens as you're not contract owner");
         _;
     }
 
-    modofier canBurn{
-
+    modifier canBurn {
+        require(block.timestamp > afterTime, "It's not time yet");           // this modifier checks if it's enough time passed since deployment of the contract, so you can burn your tokens 
+        _;
     }
 
 /*/////
@@ -44,9 +52,7 @@ miscellaneous functions
 
 */////
 
-    function setAfterTime() public {
-
-    }
+   // function setAfterTime() public {}
 
 /*/////
 
@@ -79,13 +85,13 @@ core functions
         return true;
     }
 
-    function mint(uint amount) external {
+    function mint(uint amount) external onlyOwner {
         balanceOf[msg.sender] += amount;
         totalSupply += amount;
         emit Transfer(address(0), msg.sender, amount);
     }
 
-    function burn(uint amount) external {
+    function burn(uint amount) external canBurn {
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
         emit Transfer(msg.sender, address(0), amount);
